@@ -147,6 +147,7 @@ RCT_REMAP_METHOD(refresh,
                                                redirectURL:[NSURL URLWithString:redirectUrl]
                                               responseType:OIDResponseTypeCode
                                       additionalParameters:additionalParameters];
+    
 
     // performs authentication request
     id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
@@ -155,8 +156,19 @@ RCT_REMAP_METHOD(refresh,
                     format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
     }
     appDelegate.authorizationFlowManagerDelegate = self;
-    __weak typeof(self) weakSelf = self;
-    _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
+    __weak typeof(self) weakSelf = self;    
+
+    if (additionalParameters[@"skipTokenExchange"] && [additionalParameters[@"skipTokenExchange"] isEqualToString:@"true"]) {
+       [OIDAuthorizationService presentAuthorizationRequest:request presentingViewController:appDelegate.window.rootViewController callback:^(OIDAuthorizationResponse * _Nullable response, NSError * _Nullable error) {
+            NSDictionary *map = @{
+                                  @"code" : response.authorizationCode,
+                                  @"state" : response.state,
+                                  @"redirectUri" : [response.request.redirectURL absoluteString]
+                                  };
+            resolve(map);
+        }];
+    } else {
+        _currentSession = [OIDAuthState authStateByPresentingAuthorizationRequest:request
                                    presentingViewController:appDelegate.window.rootViewController
                                                    callback:^(OIDAuthState *_Nullable authState,
                                                               NSError *_Nullable error) {
@@ -168,6 +180,7 @@ RCT_REMAP_METHOD(refresh,
                                                            reject(@"RNAppAuth Error", [error localizedDescription], error);
                                                        }
                                                    }]; // end [OIDAuthState authStateByPresentingAuthorizationRequest:request
+    }
 }
 
 
@@ -195,7 +208,6 @@ RCT_REMAP_METHOD(refresh,
                                       refreshToken:refreshToken
                                       codeVerifier:nil
                               additionalParameters:additionalParameters];
-
     [OIDAuthorizationService performTokenRequest:tokenRefreshRequest
                                         callback:^(OIDTokenResponse *_Nullable response,
                                                    NSError *_Nullable error) {
