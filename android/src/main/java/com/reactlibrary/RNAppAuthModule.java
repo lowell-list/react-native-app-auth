@@ -9,10 +9,10 @@ import android.support.annotation.Nullable;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
@@ -28,8 +28,8 @@ import net.openid.appauth.AuthorizationServiceConfiguration;
 import net.openid.appauth.ClientAuthentication;
 import net.openid.appauth.ClientSecretBasic;
 import net.openid.appauth.ResponseTypeValues;
-import net.openid.appauth.TokenResponse;
 import net.openid.appauth.TokenRequest;
+import net.openid.appauth.TokenResponse;
 import net.openid.appauth.connectivity.ConnectionBuilder;
 import net.openid.appauth.connectivity.DefaultConnectionBuilder;
 
@@ -123,8 +123,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
         }
 
 
-
-
     }
 
     @ReactMethod
@@ -206,7 +204,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
      * Called when the OAuth browser activity completes
      */
     @Override
-    public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 0) {
             AuthorizationResponse response = AuthorizationResponse.fromIntent(data);
             AuthorizationException exception = AuthorizationException.fromIntent(data);
@@ -397,7 +395,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
 
             Iterator<String> iterator = response.additionalParameters.keySet().iterator();
 
-            while(iterator.hasNext()) {
+            while (iterator.hasNext()) {
                 String key = iterator.next();
                 additionalParametersMap.putString(key, response.additionalParameters.get(key));
             }
@@ -463,12 +461,6 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 tokenEndpoint,
                 registrationEndpoint
         );
-    }
-
-
-    @Override
-    public void onNewIntent(Intent intent) {
-
     }
 
     @Override
