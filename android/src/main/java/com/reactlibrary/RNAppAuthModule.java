@@ -219,6 +219,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
             }
 
             if (this.additionalParametersMap.containsKey("skipTokenExchange")
+                    && this.additionalParametersMap.get("skipTokenExchange") != null
                     && this.additionalParametersMap.get("skipTokenExchange").equals("true")) {
                 WritableMap map = Arguments.createMap();
                 map.putString("code", response.authorizationCode);
