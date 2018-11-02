@@ -1,11 +1,19 @@
-
 #import "RNAppAuth.h"
 #import <AppAuth/AppAuth.h>
 #import <React/RCTLog.h>
 #import <React/RCTConvert.h>
-#import "AppDelegate.h"
+#import "RNAppAuthAuthorizationFlowManager.h"
+
+@interface RNAppAuth()<RNAppAuthAuthorizationFlowManagerDelegate> {
+    id<OIDExternalUserAgentSession> _currentSession;
+}
+@end
 
 @implementation RNAppAuth
+
+-(BOOL)resumeExternalUserAgentFlowWithURL:(NSURL *)url {
+    return [_currentSession resumeExternalUserAgentFlowWithURL:url];
+}
 
 - (dispatch_queue_t)methodQueue
 {
@@ -36,7 +44,6 @@ RCT_REMAP_METHOD(authorize,
                     additionalParameters: additionalParameters
                                  resolve: resolve
                                   reject: reject];
-
     } else {
         [OIDAuthorizationService discoverServiceConfigurationForIssuer:[NSURL URLWithString:issuer]
                                                             completion:^(OIDServiceConfiguration *_Nullable configuration, NSError *_Nullable error) {
@@ -44,7 +51,6 @@ RCT_REMAP_METHOD(authorize,
                                                                     reject(@"RNAppAuth Error", [error localizedDescription], error);
                                                                     return;
                                                                 }
-
                                                                 [self authorizeWithConfiguration: configuration
                                                                                      redirectUrl: redirectUrl
                                                                                         clientId: clientId
@@ -73,15 +79,14 @@ RCT_REMAP_METHOD(refresh,
     if (serviceConfiguration) {
         OIDServiceConfiguration *configuration = [self createServiceConfiguration:serviceConfiguration];
         [self refreshWithConfiguration: configuration
-                             redirectUrl: redirectUrl
-                                clientId: clientId
-                            clientSecret: clientSecret
-                            refreshToken: refreshToken
-                                  scopes: scopes
-                    additionalParameters: additionalParameters
-                                 resolve: resolve
-                                  reject: reject];
-
+                           redirectUrl: redirectUrl
+                              clientId: clientId
+                          clientSecret: clientSecret
+                          refreshToken: refreshToken
+                                scopes: scopes
+                  additionalParameters: additionalParameters
+                               resolve: resolve
+                                reject: reject];
     } else {
         // otherwise hit up the discovery endpoint
         [OIDAuthorizationService discoverServiceConfigurationForIssuer:[NSURL URLWithString:issuer]
@@ -145,10 +150,16 @@ RCT_REMAP_METHOD(refresh,
     
 
     // performs authentication request
-    AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager> appDelegate = (id<UIApplicationDelegate, RNAppAuthAuthorizationFlowManager>)[UIApplication sharedApplication].delegate;
+    if (![[appDelegate class] conformsToProtocol:@protocol(RNAppAuthAuthorizationFlowManager)]) {
+        [NSException raise:@"RNAppAuth Missing protocol conformance"
+                    format:@"%@ does not conform to RNAppAuthAuthorizationFlowManager", appDelegate];
+    }
+    appDelegate.authorizationFlowManagerDelegate = self;
+    __weak typeof(self) weakSelf = self;
     
     if (additionalParameters[@"skipTokenExchange"] && [additionalParameters[@"skipTokenExchange"] isEqualToString:@"true"]) {
-       appDelegate.currentAuthorizationFlow = [OIDAuthorizationService presentAuthorizationRequest:request presentingViewController:appDelegate.window.rootViewController callback:^(OIDAuthorizationResponse * _Nullable response, NSError * _Nullable error) {
+       _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request presentingViewController:appDelegate.window.rootViewController callback:^(OIDAuthorizationResponse * _Nullable response, NSError * _Nullable error) {
             if (error) {
                reject(@"RNAppAuth Auth Callback Error",[error localizedDescription], error);
            } else {
@@ -161,7 +172,7 @@ RCT_REMAP_METHOD(refresh,
            }
         }];
     } else {
-        appDelegate.currentAuthorizationFlow =
+        _currentSession =
         [OIDAuthState authStateByPresentingAuthorizationRequest:request
                                        presentingViewController:appDelegate.window.rootViewController
                                                        callback:^(OIDAuthState *_Nullable authState,
@@ -213,7 +224,6 @@ RCT_REMAP_METHOD(refresh,
                                                 reject(@"RNAppAuth Error", [error localizedDescription], error);
                                             }
                                         }];
-
 }
 
 /*
