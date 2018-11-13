@@ -21,7 +21,7 @@ interface BuiltInParameters {
   display?: "page" | "popup" | "touch" | "wap";
   login_prompt?: string;
   prompt?: "consent" |"login" | "none" | "select_account";
-  skipTokenExchange: boolean;
+  skipTokenExchange?: "true" | "false";
 }
 
 export type AuthConfiguration = BaseAuthConfiguration & {
