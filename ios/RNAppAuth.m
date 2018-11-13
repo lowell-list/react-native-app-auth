@@ -165,6 +165,7 @@ RCT_REMAP_METHOD(refresh,
            } else {
                 NSDictionary *map = @{
                                     @"code" : response.authorizationCode,
+                                    @"codeVerifier" : response.request.codeVerifier,
                                     @"state" : response.state,
                                     @"redirectUri" : [response.request.redirectURL absoluteString]
                                     };
