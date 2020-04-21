@@ -374,7 +374,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
      */
     @Override
     public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
-        if (requestCode == 0) {
+        if (requestCode == 0 && data != null) {
             if (data == null) {
                 if (promise != null) {
                     promise.reject("authentication_error", "Data intent is null" );
