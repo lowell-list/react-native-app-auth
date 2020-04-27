@@ -79,6 +79,8 @@ public final class TokenResponseFactory {
         map.putString("idToken", authResponse.idToken);
         map.putString("tokenType", authResponse.tokenType);
         map.putArray("scopes", createScopeArray(authResponse.scope));
+        map.putString("codeVerifier", authResponse.request.codeVerifier);
+        map.putString("redirectUri", authResponse.request.redirectUri.toString());
 
         if (authResponse.accessTokenExpirationTime != null) {
             map.putString("accessTokenExpirationTime", DateUtil.formatTimestamp(authResponse.accessTokenExpirationTime));
