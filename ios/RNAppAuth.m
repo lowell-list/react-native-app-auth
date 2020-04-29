@@ -387,6 +387,8 @@ RCT_REMAP_METHOD(refresh,
             @"idToken": response.idToken ? response.idToken : @"",
             @"scopes": response.scope ? [response.scope componentsSeparatedByString:@" "] : [NSArray new],
             @"additionalParameters": response.additionalParameters,
+            @"codeVerifier" : response.request.codeVerifier,
+            @"redirectUri" : [response.request.redirectURL absoluteString]
             };
 }
 
